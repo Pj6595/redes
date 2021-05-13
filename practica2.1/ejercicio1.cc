@@ -8,6 +8,7 @@
 int main(int argc, char** argv){
     struct addrinfo* sol; //El struct con la solución
     struct addrinfo hints; //Filtros para la búsqueda
+    
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
