@@ -2,7 +2,6 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-
 #include <string.h>
 #include <iostream>
 
@@ -68,11 +67,13 @@ int main(int argc, char** argv){
                 break;
             case 'q':
                 sendto(sd, "Servidor cerrado.", sizeof("Servidor cerrado."), 0, (struct sockaddr *)&cliente, client_len);
+                std::cout << "Cerrando el servidor...\n";
                 quit = true;
                 break;
             default:
                 char errormsg[23] = "Comando no soportado ";
                 errormsg[22] = buffer[0];
+                std::cout << "Comando no soportado " << buffer[0] << std::endl;
                 sendto(sd, errormsg, sizeof(errormsg), 0, (struct sockaddr *)&cliente, client_len);
                 break;
         }
