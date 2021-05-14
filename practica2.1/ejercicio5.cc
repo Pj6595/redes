@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <iostream>
+#include <unistd.h>
 
 int main(int argc, char **argv)
 {
@@ -45,16 +46,18 @@ int main(int argc, char **argv)
 		//Enviamos el mensaje
 		send(sd, mesg, sizeof(mesg), 0);
 
+		//Si el mensaje es Q cerramos el programa
 		if (strcmp(mesg, "Q") == 0 || strcmp(mesg, "q") == 0){
 			quit = true;
 		}
 
-		//Recibimos la respuesta
+		//Recibimos la respuesta y la imprimimos en pantalla
 		char answer[len];
 		size_t bytesReceived = recv(sd, answer, sizeof(answer), 0);
 		answer[bytesReceived] = '\0';
-
 		std::cout << answer << '\n';
 	}
 	std::cout << "Cliente cerrado\n";
+	freeaddrinfo(result);
+	close(sd);
 }

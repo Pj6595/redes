@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <iostream>
+#include <unistd.h>
 
 int main(int argc, char** argv){
 	struct addrinfo* result;
@@ -41,4 +42,6 @@ int main(int argc, char** argv){
 	answer[bytesReceived] = '\0';
 
 	std::cout << answer << '\n';
+	freeaddrinfo(result);
+	close(sd);
 }
