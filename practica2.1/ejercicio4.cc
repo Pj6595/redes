@@ -40,6 +40,7 @@ int main(int argc, char** argv){
 		
 		getnameinfo((struct sockaddr *) &cliente, cliente_len, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST|NI_NUMERICSERV);
 		printf("Conexión desde Host:%s Puerto:%s\n",host, serv);
+		//std::cout << "Conexión desde Host: " << host << " Puerto: " << serv << std::endl;
 
 		//Hasta que el cliente se desconecte esperamos a que mande un mensaje y se lo mandamos de vuelta
 		while(!quit){
@@ -47,7 +48,12 @@ int main(int argc, char** argv){
 			char buffer[100];
 			int bytesReceived = recv(cliente_sd, buffer, sizeof(buffer), 0);
 
-			if(bytesReceived==2 && (buffer[0]=='Q' || buffer[0] == 'q')) quit = true;
+			if (strcmp(buffer, "Q") == 0 || strcmp(buffer, "q") == 0){
+				quit = true;
+			}
+
+			if (bytesReceived == 2 && (buffer[0] == 'Q' || buffer[0] == 'q'))
+				quit = true;
 			else send(cliente_sd, buffer, bytesReceived, 0);
 		}
 		std::cout << "Conexión terminada\n";
