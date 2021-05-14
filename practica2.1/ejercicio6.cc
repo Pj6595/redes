@@ -5,13 +5,15 @@
 #include <string.h>
 #include <iostream>
 #include <thread>
+#include <unistd.h>
 
 #define MAX_THREAD 7
 
 class MessageThread{
 	public:
-	MessageThread(int sd, int i): sd(sd), i(i){
+	MessageThread(int sd): sd(sd){
 	}
+	//Función que procesa los mensajes
 	void do_message(){
 		bool quit = false;
 		while (!quit)
@@ -39,7 +41,7 @@ class MessageThread{
 
 			//Sacamos la info del cliente y luego la imprimimos
 			getnameinfo((struct sockaddr *)&cliente, client_len, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV);
-			printf("%d bytes de %s:%s\n", bytes, host, serv);
+			std::cout << bytes << " bytes de " << host << ":" << serv << ", thread " << std::this_thread::get_id() << '\n';
 
 			//Dependiendo del mensaje recibido realizamos una u otra acción
 			switch (buffer[0])
@@ -52,11 +54,6 @@ class MessageThread{
 				bytesToSend = strftime(timeMessage, sizeof(timeMessage), "%F", localtime(&timeData));
 				sendto(sd, timeMessage, bytesToSend, 0, (struct sockaddr *)&cliente, client_len);
 				break;
-			// case 'q':
-			// 	sendto(sd, "Servidor cerrado.", sizeof("Servidor cerrado."), 0, (struct sockaddr *)&cliente, client_len);
-			// 	std::cout << "Cerrando el servidor...\n";
-			// 	quit = true;
-			// 	break;
 			default:
 				char errormsg[23] = "Comando no soportado ";
 				errormsg[22] = buffer[0];
@@ -64,6 +61,7 @@ class MessageThread{
 				sendto(sd, errormsg, sizeof(errormsg), 0, (struct sockaddr *)&cliente, client_len);
 				break;
 			}
+			sleep(3); //Parada artificial para comprobar la concurrencia
 		}
 	}
 	private:
@@ -80,7 +78,7 @@ int main(int argc, char **argv)
 
 	hints.ai_flags = AI_PASSIVE; //Devolver 0.0.0.0
 	hints.ai_family = AF_INET;	 // IPv4
-	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_socktype = SOCK_DGRAM; //UDP
 
 	int rc = getaddrinfo(argv[1], argv[2], &hints, &result);
 	if (rc != 0)
@@ -96,15 +94,18 @@ int main(int argc, char **argv)
 
 	bind(sd, (struct sockaddr *)result->ai_addr, result->ai_addrlen);
 
-	std::thread pool[MAX_THREAD];
+	//Hacemos el pool de hilos y los ponemos a ejecutar la función do_message
+	std::thread threadPool[MAX_THREAD];
 	for (int i = 0; i < MAX_THREAD; i++){
-		MessageThread *thread = new MessageThread(sd, i);
+		MessageThread *thread = new MessageThread(sd);
 
-		pool[i] = std::thread([&thread]() {
+		threadPool[i] = std::thread([&thread]() {
 			thread->do_message();
+			delete thread;
 		});
 	}
 
+	//Esperamos a que nos manden el comando para salir
 	bool exit = false;
 	char inp = ' ';
 	while (!exit)
@@ -114,7 +115,12 @@ int main(int argc, char **argv)
 			exit = true;
 	}
 
+	std::cout << "Cerrando servidor...\n";
+
+	//Desligamos los hilos del proceso y liberamos recursos
 	for (int i = 0; i < MAX_THREAD; i++){
-		pool[i].detach();
+		threadPool[i].detach();
 	}
+	close(sd);
+	freeaddrinfo(result);
 }
