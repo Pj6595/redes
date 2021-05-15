@@ -55,6 +55,7 @@ int main(int argc, char** argv){
 			else send(cliente_sd, buffer, bytesReceived, 0);
 		}
 		std::cout << "Conexión terminada\n";
+		close(cliente_sd);
 	}
 	freeaddrinfo(result);
 	close(sd);

@@ -15,8 +15,7 @@ class MessageThread{
 	}
 	//Función que procesa los mensajes
 	void do_message(){
-		bool quit = false;
-		while (!quit)
+		while (true)
 		{
 			//Definimos el buffer para recibir mensajes y declaramos el sockaddr del cliente
 			int len = 80;
@@ -66,7 +65,6 @@ class MessageThread{
 	}
 	private:
 		int sd;
-		int i;
 };
 
 int main(int argc, char **argv)
@@ -103,6 +101,7 @@ int main(int argc, char **argv)
 			thread->do_message();
 			delete thread;
 		});
+		threadPool[i].detach();
 	}
 
 	//Esperamos a que nos manden el comando para salir
