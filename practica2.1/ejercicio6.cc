@@ -115,11 +115,6 @@ int main(int argc, char **argv)
 	}
 
 	std::cout << "Cerrando servidor...\n";
-
-	//Desligamos los hilos del proceso y liberamos recursos
-	for (int i = 0; i < MAX_THREAD; i++){
-		threadPool[i].detach();
-	}
 	close(sd);
 	freeaddrinfo(result);
 }

@@ -79,6 +79,7 @@ int main(int argc, char **argv)
 		getnameinfo((struct sockaddr *)&cliente, cliente_len, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV);
 		printf("Conexión desde Host:%s Puerto:%s\n", host, serv);
 
+		//Por cada nueva conexión creamos un hilo y lo desligamos del principal para que se ejecute independientemente
 		MessageThread *thread = new MessageThread(cliente_sd);
 		std::thread([&thread]() {
 			thread->do_message();
