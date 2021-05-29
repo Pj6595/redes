@@ -61,7 +61,7 @@ void ChatServer::do_messages()
 
 		switch(msg.type){
 			case ChatMessage::LOGIN:
-				//std::cout << "JAJJAJAJAJAJAJJAJA\n";
+				for (auto it = clients.begin(); it != clients.end(); ++it) socket.send(msg, **it);
 				clients.push_back(std::move(clientPtr));
 				std::cout << msg.nick << " se ha conectado.\n";
 				break;
@@ -81,6 +81,7 @@ void ChatServer::do_messages()
 						break;
 					}
 				}
+				for (auto it = clients.begin(); it != clients.end(); ++it) socket.send(msg, **it);
 				std::cout << msg.nick << " se ha desconectado.\n";
 				break;
 		}
@@ -115,10 +116,10 @@ void ChatClient::input_thread()
     while (true)
     {
         // Leer stdin con std::getline
-        // Enviar al servidor usando socket
 		std::string msg;
 		std::getline(std::cin, msg);
 
+		//Si el mensaje es LOGOUT nos desconectamos, si es LOGIN volvemos a entrar al chat
 		ChatMessage message(nick, msg);
 		if(msg=="LOGOUT"){
 			logout();
@@ -130,6 +131,7 @@ void ChatClient::input_thread()
 		}
 		else message.type = ChatMessage::MESSAGE;
 
+		// Enviar al servidor usando socket
 		socket.send(message, socket);
 	}
 }
@@ -139,10 +141,17 @@ void ChatClient::net_thread()
     while(true)
     {
         //Recibir Mensajes de red
-        //Mostrar en pantalla el mensaje de la forma "nick: mensaje"
 		ChatMessage msg;
 		socket.recv(msg);
-		std::cout << msg.nick << ": " << msg.message << '\n';
+
+		//Si el mensaje es login o logout mostramos un mensaje informativo
+		if(msg.type == ChatMessage::LOGOUT)
+			std::cout << msg.nick << " se ha ido del chat.\n";
+		else if(msg.type == ChatMessage::LOGIN)
+			std::cout << msg.nick << " se ha unido al chat.\n";
+		else
+			//Mostrar en pantalla el mensaje de la forma "nick: mensaje"
+			std::cout << msg.nick << ": " << msg.message << '\n';
 	}
 }
 
